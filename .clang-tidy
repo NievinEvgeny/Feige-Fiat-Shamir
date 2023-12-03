@@ -27,7 +27,9 @@ Checks: |
   -readability-implicit-bool-conversion,
   -hicpp-signed-bitwise,
   -cppcoreguidelines-pro-type-reinterpret-cast,
-  -bugprone-exception-escape
+  -bugprone-exception-escape,
+  -cert-err34-c,
+  -readability-isolate-declaration
 WarningsAsErrors: true
 HeaderFilterRegex: '(client|server)/'
 AnalyzeTemporaryDtors: false

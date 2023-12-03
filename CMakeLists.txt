@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 
 project(
-    Feige-Fiat-Shamir
+    Cryptography
     VERSION 1.0
     LANGUAGES CXX
 )
