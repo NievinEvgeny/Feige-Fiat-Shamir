@@ -1,0 +1,42 @@
+---
+Checks: |
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  *,
+  -altera-*,
+  -fuchsia-*,
+  -llvmlibc-*,
+  -llvm-header-guard,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-owning-memory,
+  -google-runtime-references,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-avoid-magic-number,
+  -readability-magic-numbers,
+  -cppcoreguidelines-special-member-functions,
+  -hicpp-special-member-functions,
+  -misc-non-private-member-variables-in-classes,
+  -llvm-include-order,
+  -cert-dcl21-cpp,
+  -readability-identifier-length,
+  -readability-const-return-type,
+  -cppcoreguidelines-pro-type-const-cast,
+  -bugprone-easily-swappable-parameters,
+  -readability-suspicious-call-argument,
+  -readability-implicit-bool-conversion,
+  -hicpp-signed-bitwise,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -bugprone-exception-escape
+WarningsAsErrors: true
+HeaderFilterRegex: '(libcrypt|ciphers|params|signatures|poker)/'
+AnalyzeTemporaryDtors: false
+FormatStyle:     file
+CheckOptions:
+  - key:   cppcoreguidelines-explicit-virtual-functions.IgnoreDestructors
+    value: '1'
+  - key:   cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value: 'true'
+  - key:   hicpp-special-member-functions.AllowSoleDefaultDtor
+    value: 'true'
+...
