@@ -29,7 +29,7 @@ Checks: |
   -cppcoreguidelines-pro-type-reinterpret-cast,
   -bugprone-exception-escape
 WarningsAsErrors: true
-HeaderFilterRegex: '(libcrypt|ciphers|params|signatures|poker)/'
+HeaderFilterRegex: '(client|server)/'
 AnalyzeTemporaryDtors: false
 FormatStyle:     file
 CheckOptions:
