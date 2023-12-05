@@ -15,6 +15,8 @@ int test_send(int sockfd)
             std::cerr << "Can't send to server\n";
             return -1;
         }
+
+        sleep(5);
     }
 
     return 0;

@@ -7,30 +7,40 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
-void* test(void* thread_data)
+struct pthread_data
+{
+    int* users_count;
+    int* client_sockfd;
+    pthread_mutex_t* mutexcount;
+};
+
+void* test(void* thread_args)
 {
     constexpr int expected_data = 100;
 
-    int* client_sockfd = reinterpret_cast<int*>(thread_data);
-    int data = 0;
+    auto* thread_data = reinterpret_cast<pthread_data*>(thread_args);
+    int recv_data = 0;
 
     while (true)
     {
-        if (recv(*client_sockfd, &data, sizeof(int), 0) == -1)
+        if (recv(*thread_data->client_sockfd, &recv_data, sizeof(int), 0) <= 0)
         {
-            std::cerr << "Can't recv from client\n";
+            std::cerr << "User disconnected\n";
+
+            pthread_mutex_lock(thread_data->mutexcount);
+            (*thread_data->users_count)--;
+            pthread_mutex_unlock(thread_data->mutexcount);
+
+            delete thread_data->client_sockfd;
+            delete thread_data;
             pthread_exit(nullptr);
         }
 
-        if (data == expected_data)
+        if (recv_data == expected_data)
         {
-            std::cout << *client_sockfd << " done\n";
+            std::cout << *thread_data->client_sockfd << " done\n";
         }
     }
-
-    close(*client_sockfd);
-    delete client_sockfd;
-    pthread_exit(nullptr);
 }
 
 int main(int argc, char* argv[])
@@ -58,17 +68,16 @@ int main(int argc, char* argv[])
 
             pthread_t new_thread = 0;
 
-            if (pthread_create(&new_thread, nullptr, test, reinterpret_cast<void*>(client_sockfd)))
+            auto* data = new pthread_data{&users_count, client_sockfd, &mutexcount};
+
+            if (pthread_create(&new_thread, nullptr, test, reinterpret_cast<void*>(data)))
             {
                 std::cerr << "Thread creation failed\n";
+
                 close(listener_sockfd);
                 pthread_mutex_destroy(&mutexcount);
                 pthread_exit(nullptr);
             }
-
-            pthread_mutex_lock(&mutexcount);
-            users_count--;
-            pthread_mutex_unlock(&mutexcount);
         }
     }
 
