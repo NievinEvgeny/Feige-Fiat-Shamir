@@ -15,6 +15,7 @@ target_link_libraries(
     ${client_name} 
     PUBLIC 
     libclient
+    cxxopts
 )
 
 target_include_directories(

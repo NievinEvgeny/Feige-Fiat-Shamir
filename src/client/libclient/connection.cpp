@@ -9,7 +9,7 @@
 
 namespace libclient {
 
-int connect_to_server(char* hostname, int port)
+int connect_to_server(const std::string& hostname, const std::string& port)
 {
     addrinfo hints{}, *result = nullptr;
     int sockfd = 0;
@@ -18,7 +18,7 @@ int connect_to_server(char* hostname, int port)
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    if (getaddrinfo(hostname, std::to_string(port).c_str(), &hints, &result) != 0)
+    if (getaddrinfo(hostname.data(), port.data(), &hints, &result) != 0)
     {
         std::cerr << "Can't get address info for host: " << hostname << "\n";
         return -1;

@@ -1,4 +1,6 @@
 #include <client/connection.hpp>
+#include <cxxopts.hpp>
+#include <string>
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
@@ -8,15 +10,10 @@ int test_send(int sockfd)
 {
     constexpr int data = 100;
 
-    while (true)
+    if (send(sockfd, &data, sizeof(int), 0) == -1)
     {
-        if (send(sockfd, &data, sizeof(int), 0) == -1)
-        {
-            std::cerr << "Can't send to server\n";
-            return -1;
-        }
-
-        sleep(5);
+        std::cerr << "Can't send to server\n";
+        return -1;
     }
 
     return 0;
@@ -24,26 +21,45 @@ int test_send(int sockfd)
 
 int main(int argc, char* argv[])
 {
-    if (argc < 3)
-    {
-        std::cerr << "Error arguments\nExample: " << argv[0] << " ip port\n";
-        return -1;
-    }
+    cxxopts::Options options("cryptography");
 
-    int sockfd = libclient::connect_to_server(argv[1], atoi(argv[2]));
+    // clang-format off
+    options.add_options()
+        ("i,ip", "server ip", cxxopts::value<std::string>()->default_value("localhost"))
+        ("p,port", "server port", cxxopts::value<std::string>()->default_value("5001"));
+    // clang-format on
 
-    if (sockfd == -1)
+    try
     {
-        return -1;
-    }
+        const auto parse_cmd_line = options.parse(argc, argv);
 
-    if (test_send(sockfd))
-    {
+        if (parse_cmd_line.count("help"))
+        {
+            std::cout << options.help() << '\n';
+            return 0;
+        }
+
+        int sockfd = libclient::connect_to_server(
+            parse_cmd_line["ip"].as<std::string>(), parse_cmd_line["port"].as<std::string>());
+
+        if (sockfd == -1)
+        {
+            return -1;
+        }
+
+        if (test_send(sockfd))
+        {
+            close(sockfd);
+            std::cerr << "Can't send to server\n";
+            return -1;
+        }
+
         close(sockfd);
-        std::cerr << "Can't send to server\n";
+        return 0;
+    }
+    catch (const cxxopts::exceptions::exception& msg)
+    {
+        std::cerr << msg.what() << '\n';
         return -1;
     }
-
-    close(sockfd);
-    return 0;
 }

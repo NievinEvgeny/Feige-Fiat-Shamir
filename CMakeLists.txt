@@ -42,3 +42,4 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 endif()
 
 add_subdirectory(src)
+add_subdirectory(external)

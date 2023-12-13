@@ -19,6 +19,7 @@ target_link_libraries(
     PUBLIC 
     libserver 
     Threads::Threads
+    cxxopts
 )
 
 target_include_directories(
