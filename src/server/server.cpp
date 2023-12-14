@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <fstream>
 #include <vector>
 
 struct pthread_data
@@ -31,7 +32,6 @@ void* test(void* thread_args)
 {
     auto* thread_data = reinterpret_cast<pthread_data*>(thread_args);
 
-    constexpr uint16_t max_login_size = 255;
     constexpr uint16_t key_size = 8;
     // constexpr uint8_t rounds = 5;
 
@@ -51,26 +51,83 @@ void* test(void* thread_args)
         pthread_exit(nullptr);
     }
 
-    std::string login(max_login_size, '\0');
+    uint8_t login_size = 0;
 
-    if (recv(*thread_data->client_sockfd, login.data(), max_login_size, 0) <= 0)
+    if (recv(*thread_data->client_sockfd, &login_size, sizeof(login_size), 0) <= 0)
     {
         std::cerr << "User disconnected\n";
         test_end(thread_data);
         pthread_exit(nullptr);
     }
 
+    std::string login(login_size, '\0');
+
+    if (recv(*thread_data->client_sockfd, login.data(), login_size, 0) <= 0)
+    {
+        std::cerr << "User disconnected\n";
+        test_end(thread_data);
+        pthread_exit(nullptr);
+    }
+
+    std::vector<uint32_t> client_shared_key;
+    client_shared_key.reserve(key_size + 1);
+    client_shared_key.resize(key_size + 1);
+    constexpr std::size_t shared_key_size = (key_size + 1) * sizeof(uint32_t);
+
     if (signup)
     {
-        std::vector<uint32_t> client_shared_key;
-        client_shared_key.reserve(key_size + 1);
-        client_shared_key.resize(key_size + 1);
-
-        if (recv(*thread_data->client_sockfd, client_shared_key.data(), (key_size + 1) * sizeof(uint32_t), 0) <= 0)
+        if (recv(*thread_data->client_sockfd, client_shared_key.data(), shared_key_size, 0) <= 0)
         {
             std::cerr << "User disconnected\n";
             test_end(thread_data);
             pthread_exit(nullptr);
+        }
+
+        std::ofstream database("serverDB.csv", std::ios::binary | std::ios::app);
+        if (!database.is_open())
+        {
+            throw std::runtime_error{"Can't open database"};
+        }
+
+        database.write(reinterpret_cast<const char*>(&login_size), sizeof(login_size));
+        database.write(login.c_str(), login_size);
+
+        for (const auto& element : client_shared_key)
+        {
+            database.write(reinterpret_cast<const char*>(&element), sizeof(element));
+        }
+    }
+    else
+    {
+        std::ifstream database("serverDB.csv", std::ios::binary);
+        if (!database.is_open())
+        {
+            throw std::runtime_error{"Can't open database"};
+        }
+
+        while (true)
+        {
+            uint8_t tmp_login_size = 0;
+
+            database.read(reinterpret_cast<char*>(&tmp_login_size), sizeof(tmp_login_size));
+
+            std::string tmp_login(tmp_login_size, '\0');
+
+            database.read(tmp_login.data(), tmp_login_size);
+
+            if (tmp_login == login)
+            {
+                database.read(reinterpret_cast<char*>(client_shared_key.data()), shared_key_size);
+                break;
+            }
+
+            database.seekg(shared_key_size, std::ios::cur);
+
+            if (database.eof())
+            {
+                test_end(thread_data);
+                pthread_exit(nullptr);
+            }
         }
     }
 

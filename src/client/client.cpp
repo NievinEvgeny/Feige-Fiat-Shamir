@@ -66,6 +66,13 @@ int main(int argc, char* argv[])
 
         const std::string login = parse_cmd_line["login"].as<std::string>();
 
+        const uint8_t login_size = login.size();
+
+        if (send(sockfd, &login_size, sizeof(login_size), 0) <= 0)
+        {
+            return -1;
+        }
+
         if (send(sockfd, login.c_str(), login.size(), 0) <= 0)
         {
             return -1;
