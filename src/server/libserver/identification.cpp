@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <unistd.h>
+#include <cmath>
 
 namespace libserver {
 
@@ -212,7 +213,8 @@ void* identification(void* thread_args)
 
         secret_check = utils::mod(secret_check * rand_num, client_shared_key.back());
 
-        if ((secret_check == 0) || (secret_check != utils::pow_mod(masked_secret, 2, client_shared_key.back())))
+        if ((secret_check == 0)
+            || (secret_check != std::abs(utils::pow_mod(masked_secret, 2, client_shared_key.back()))))
         {
             protocol_result = false;
             std::cerr << "Client not approved\n";
