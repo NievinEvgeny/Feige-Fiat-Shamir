@@ -22,6 +22,7 @@ target_include_directories(
     ${client_name}
     PRIVATE 
     ${PROJECT_SOURCE_DIR}/include/
+    ${PROJECT_SOURCE_DIR}/external/
 )
 
 add_subdirectory(libclient)

@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <vector>
 
 struct pthread_data
 {
@@ -59,8 +60,19 @@ void* test(void* thread_args)
         pthread_exit(nullptr);
     }
 
-    std::cout << signup << '\n';
-    std::cout << login << '\n';
+    if (signup)
+    {
+        std::vector<uint32_t> client_shared_key;
+        client_shared_key.reserve(key_size + 1);
+        client_shared_key.resize(key_size + 1);
+
+        if (recv(*thread_data->client_sockfd, client_shared_key.data(), (key_size + 1) * sizeof(uint32_t), 0) <= 0)
+        {
+            std::cerr << "User disconnected\n";
+            test_end(thread_data);
+            pthread_exit(nullptr);
+        }
+    }
 
     test_end(thread_data);
     pthread_exit(nullptr);

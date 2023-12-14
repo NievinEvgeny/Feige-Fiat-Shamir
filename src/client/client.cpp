@@ -1,11 +1,13 @@
 #include <client/connection.hpp>
 #include <client/utils.hpp>
+#include <PicoSHA2/picosha2.h>
 #include <cxxopts.hpp>
 #include <string>
 #include <iostream>
-#include <unistd.h>
+#include <cstdint>
 #include <netinet/in.h>
 #include <vector>
+#include <cstdlib>
 
 int main(int argc, char* argv[])
 {
@@ -72,15 +74,38 @@ int main(int argc, char* argv[])
         uint32_t mod = libclient::gen_mod();
         uint8_t bits = libclient::gen_bits();
 
-        std::cout << key_size << '\n';
-        std::cout << mod << '\n';
-        std::cout << bits << '\n';
+        const std::string password_hash = picosha2::hash256_hex_string(parse_cmd_line["password"].as<std::string>());
+        std::vector<uint32_t> private_key;
+        private_key.reserve(key_size);
+        private_key.resize(key_size);
 
-        /*std::vector<int32_t> shared_key;
-        for(uint16_t i = 0; i < key_size; i++)
+        std::memcpy(private_key.data(), password_hash.data(), key_size * sizeof(uint32_t));
+
+        for (auto& val : private_key)
         {
-            int64_t value =
-        }*/
+            val = libclient::mod(val, mod);
+        }
+
+        if (signup)
+        {
+            std::vector<uint32_t> shared_key;
+            shared_key.reserve(key_size + 1);
+
+            for (uint16_t i = 0; i < key_size; i++)
+            {
+                int8_t sign = (bits & i) ? -1 : 1;
+
+                shared_key.emplace_back(libclient::mod(
+                    sign * libclient::extended_gcd(libclient::pow_mod(private_key.at(i), 2, mod), mod).back(), mod));
+            }
+
+            shared_key.emplace_back(mod);
+
+            if (send(sockfd, shared_key.data(), shared_key.size() * sizeof(uint32_t), 0) <= 0)
+            {
+                return -1;
+            }
+        }
 
         // end protocol
 
