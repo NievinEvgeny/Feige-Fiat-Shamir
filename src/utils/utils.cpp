@@ -1,10 +1,10 @@
-#include <client/utils.hpp>
+#include <utils/utils.hpp>
 #include <cmath>
 #include <random>
 #include <vector>
 #include <cstdint>
 
-namespace libclient {
+namespace utils {
 
 static bool is_prime(int64_t prime)
 {
@@ -46,12 +46,12 @@ uint32_t gen_mod()
     do
     {
         mod_part_P = prime_gen_range(mt);
-    } while (!libclient::is_prime(mod_part_P));
+    } while (!utils::is_prime(mod_part_P));
 
     do
     {
         mod_part_Q = prime_gen_range(mt);
-    } while (!libclient::is_prime(mod_part_Q) || (mod_part_Q == mod_part_P));
+    } while (!utils::is_prime(mod_part_Q) || (mod_part_Q == mod_part_P));
 
     return mod_part_P * mod_part_Q;
 }
@@ -102,4 +102,12 @@ std::vector<int64_t> extended_gcd(int64_t first, int64_t second)
     return u;
 }
 
-}  // namespace libclient
+int64_t gen_rand(int64_t mod)
+{
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int64_t> rand_gen_range(1, mod - 1);
+    return rand_gen_range(mt);
+}
+
+}  // namespace utils

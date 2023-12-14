@@ -4,8 +4,8 @@ add_library(
     ${target_name} STATIC
     connection.cpp 
     ${PROJECT_SOURCE_DIR}/include/client/connection.hpp
-    utils.cpp
-    ${PROJECT_SOURCE_DIR}/include/client/utils.hpp
+    ${PROJECT_SOURCE_DIR}/src/utils/utils.cpp
+    ${PROJECT_SOURCE_DIR}/include/utils/utils.hpp
 )
 
 include(CompileOptions)
