@@ -1,9 +1,8 @@
 #include <server/connection.hpp>
 #include <cxxopts.hpp>
-#include <cstring>
+#include <string>
 #include <pthread.h>
 #include <iostream>
-#include <cstdlib>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/types.h>
@@ -15,24 +14,8 @@ struct pthread_data
     pthread_mutex_t* mutexcount;
 };
 
-void* test(void* thread_args)
+void test_end(pthread_data* thread_data)
 {
-    constexpr int expected_data = 100;
-
-    auto* thread_data = reinterpret_cast<pthread_data*>(thread_args);
-
-    int recv_data = 0;
-
-    if (recv(*thread_data->client_sockfd, &recv_data, sizeof(int), 0) <= 0)
-    {
-        std::cerr << "User disconnected\n";
-    }
-
-    if (recv_data == expected_data)
-    {
-        std::cout << *thread_data->client_sockfd << " done\n";
-    }
-
     pthread_mutex_lock(thread_data->mutexcount);
     (*thread_data->users_count)--;
     pthread_mutex_unlock(thread_data->mutexcount);
@@ -41,7 +24,45 @@ void* test(void* thread_args)
 
     delete thread_data->client_sockfd;
     delete thread_data;
+}
 
+void* test(void* thread_args)
+{
+    auto* thread_data = reinterpret_cast<pthread_data*>(thread_args);
+
+    constexpr uint16_t max_login_size = 255;
+    constexpr uint16_t key_size = 8;
+    // constexpr uint8_t rounds = 5;
+
+    if (send(*thread_data->client_sockfd, &key_size, sizeof(key_size), 0) <= 0)
+    {
+        std::cerr << "User disconnected\n";
+        test_end(thread_data);
+        pthread_exit(nullptr);
+    }
+
+    bool signup = false;
+
+    if (recv(*thread_data->client_sockfd, &signup, sizeof(signup), 0) <= 0)
+    {
+        std::cerr << "User disconnected\n";
+        test_end(thread_data);
+        pthread_exit(nullptr);
+    }
+
+    std::string login(max_login_size, '\0');
+
+    if (recv(*thread_data->client_sockfd, login.data(), max_login_size, 0) <= 0)
+    {
+        std::cerr << "User disconnected\n";
+        test_end(thread_data);
+        pthread_exit(nullptr);
+    }
+
+    std::cout << signup << '\n';
+    std::cout << login << '\n';
+
+    test_end(thread_data);
     pthread_exit(nullptr);
 }
 
@@ -82,16 +103,7 @@ int main(int argc, char* argv[])
                 if (pthread_create(&new_thread, nullptr, test, reinterpret_cast<void*>(data)))
                 {
                     std::cerr << "Thread creation failed\n";
-
-                    pthread_mutex_lock(&mutexcount);
-                    users_count--;
-                    pthread_mutex_unlock(&mutexcount);
-
-                    close(*client_sockfd);
-
-                    delete client_sockfd;
-                    delete data;
-
+                    test_end(data);
                     pthread_exit(nullptr);
                 }
             }
