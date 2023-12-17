@@ -4,8 +4,8 @@ add_library(
     ${target_name} STATIC
     connection.cpp 
     ${PROJECT_SOURCE_DIR}/include/server/connection.hpp
-    identification.cpp
-    ${PROJECT_SOURCE_DIR}/include/server/identification.hpp
+    authentication.cpp
+    ${PROJECT_SOURCE_DIR}/include/server/authentication.hpp
     ${PROJECT_SOURCE_DIR}/src/utils/utils.cpp
     ${PROJECT_SOURCE_DIR}/include/utils/utils.hpp
 )

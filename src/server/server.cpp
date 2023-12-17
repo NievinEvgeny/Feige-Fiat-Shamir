@@ -1,5 +1,5 @@
 #include <server/connection.hpp>
-#include <server/identification.hpp>
+#include <server/authentication.hpp>
 #include <cxxopts.hpp>
 #include <pthread.h>
 #include <iostream>

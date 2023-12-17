@@ -1,4 +1,4 @@
-#include <server/identification.hpp>
+#include <server/authentication.hpp>
 #include <utils/utils.hpp>
 #include <string>
 #include <pthread.h>
@@ -24,7 +24,7 @@ void protocol_end(libserver::pthread_data* thread_data)
 }
 
 template <typename T>
-void serv_send(pthread_data* thread_data, T* buf, std::size_t buf_size)
+static void serv_send(pthread_data* thread_data, T* buf, std::size_t buf_size)
 {
     if (send(*thread_data->client_sockfd, buf, buf_size, 0) <= 0)
     {
@@ -35,7 +35,7 @@ void serv_send(pthread_data* thread_data, T* buf, std::size_t buf_size)
 }
 
 template <typename T>
-void serv_recv(pthread_data* thread_data, T* buf, std::size_t buf_size)
+static void serv_recv(pthread_data* thread_data, T* buf, std::size_t buf_size)
 {
     if (recv(*thread_data->client_sockfd, buf, buf_size, 0) <= 0)
     {
@@ -65,9 +65,7 @@ void* identification(void* thread_args)
 
     serv_recv(thread_data, login.data(), login_size);
 
-    std::vector<int64_t> shared_key;
-    shared_key.reserve(key_size + 1);
-    shared_key.resize(key_size + 1);
+    std::vector<int64_t> shared_key(key_size + 1);
     constexpr std::size_t shared_key_size = (key_size + 1) * sizeof(int64_t);
 
     if (signup)
@@ -116,6 +114,8 @@ void* identification(void* thread_args)
         }
 
         pthread_mutex_unlock(thread_data->mutexcount);
+
+        database.close();
     }
     else
     {
@@ -150,6 +150,8 @@ void* identification(void* thread_args)
             protocol_end(thread_data);
             pthread_exit(nullptr);
         }
+
+        database.close();
 
         serv_send(thread_data, &shared_key.back(), sizeof(shared_key.back()));
     }
