@@ -29,8 +29,7 @@ Checks: |
   -cppcoreguidelines-pro-type-reinterpret-cast,
   -bugprone-exception-escape,
   -cert-err34-c,
-  -readability-isolate-declaration,
-  -readability-function-cognitive-complexity
+  -readability-isolate-declaration
 WarningsAsErrors: true
 HeaderFilterRegex: '(client|server|utils)/'
 AnalyzeTemporaryDtors: false
