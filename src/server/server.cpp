@@ -38,10 +38,10 @@ int main(int argc, char* argv[])
 
                 auto* data = new libserver::pthread_data{&users_count, client_sockfd, &mutexcount};
 
-                if (pthread_create(&new_thread, nullptr, libserver::identification, reinterpret_cast<void*>(data)))
+                if (pthread_create(&new_thread, nullptr, libserver::authentication, reinterpret_cast<void*>(data)))
                 {
                     std::cerr << "Thread creation failed\n";
-                    protocol_end(data);
+                    libserver::protocol_end(data);
                     pthread_exit(nullptr);
                 }
             }

@@ -6,6 +6,8 @@ add_library(
     ${PROJECT_SOURCE_DIR}/include/server/connection.hpp
     authentication.cpp
     ${PROJECT_SOURCE_DIR}/include/server/authentication.hpp
+    database.cpp
+    ${PROJECT_SOURCE_DIR}/include/server/database.hpp
     ${PROJECT_SOURCE_DIR}/src/utils/utils.cpp
     ${PROJECT_SOURCE_DIR}/include/utils/utils.hpp
 )

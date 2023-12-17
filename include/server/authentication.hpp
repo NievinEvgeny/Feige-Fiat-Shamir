@@ -12,6 +12,6 @@ struct pthread_data
 
 void protocol_end(libserver::pthread_data* thread_data);
 
-void* identification(void* thread_args);
+void* authentication(void* thread_args);
 
 }  // namespace libserver
