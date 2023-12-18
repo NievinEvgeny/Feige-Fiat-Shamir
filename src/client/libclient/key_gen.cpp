@@ -11,9 +11,7 @@ namespace libclient {
 std::vector<int64_t> private_key_gen(const std::string& password, uint16_t key_size, int64_t mod)
 {
     const std::string password_hash = picosha2::hash256_hex_string(password);
-    std::vector<int64_t> private_key;
-    private_key.reserve(key_size);
-    private_key.resize(key_size);
+    std::vector<int64_t> private_key(key_size);
 
     std::memcpy(private_key.data(), password_hash.data(), key_size * sizeof(int64_t));
 
